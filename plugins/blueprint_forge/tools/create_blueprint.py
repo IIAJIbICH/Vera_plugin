@@ -938,17 +938,13 @@ print(json.dumps(result))
                 success=False,
                 error=str(e),
                 message=f"Ошибка связи с Unreal Editor: {e}"
-            )lResult(
-                    success=False,
-                    data=response,
-                    message=response.get("error", "Неизвестная ошибка")
-                )
-                
-        except (UEConnectionError, UETimeoutError) as e:
+            )
+            
+        except Exception as e:
             return ToolResult(
                 success=False,
                 error=str(e),
-                message=f"Ошибка связи с Unreal Editor: {e}"
+                message="Неизвестная ошибка выполнения"
             )
 
 
