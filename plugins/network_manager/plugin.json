@@ -1,9 +1,13 @@
 {
-  "Version": "1.0.0",
-  "DisplayName": "Network Manager",
-  "Description": "Сетевая инфраструктура для MMO RPG: репликация, RPC, сессии, серверная конфигурация",
-  "Category": "VERA Tools",
-  "CreatedBy": "VERA AI",
-  "DocumentationURL": "",
-  "SupportURL": ""
+  "name": "NetworkManager",
+  "version": "1.0.0",
+  "description": "Сетевая инфраструктура для MMO в UE5.7: репликация, RPC, тестирование сети, выделенные серверы, сессии",
+  "author": "VERA Team",
+  "tools": [
+    "network_manager.tools.network_tools.SetupReplication",
+    "network_manager.tools.network_tools.ConfigureRPC",
+    "network_manager.tools.network_tools.TestNetworkProfiling",
+    "network_manager.tools.network_tools.CreateDedicatedServerConfig",
+    "network_manager.tools.network_tools.SetupSessionSystem"
+  ]
 }

@@ -1,9 +1,16 @@
 {
   "name": "CppForge",
   "version": "1.0.0",
-  "description": "C++ код-генерация и управление проектом UE5.7",
+  "description": "Инструменты для работы с C++ кодом в Unreal Engine 5.7: создание модулей, классов, линтинг, форматирование, рефакторинг, тесты, профилирование и hot-reload",
   "author": "VERA Team",
   "tools": [
-    "cpp_forge.tools.create_cpp_module"
+    "cpp_forge.tools.cpp_tools.CreateCppModule",
+    "cpp_forge.tools.cpp_tools.CreateCppClass",
+    "cpp_forge.tools.cpp_tools.RunCppLint",
+    "cpp_forge.tools.cpp_tools.FormatCppCode",
+    "cpp_forge.tools.cpp_tools.RefactorCppCode",
+    "cpp_forge.tools.cpp_tools.GenerateCppTests",
+    "cpp_forge.tools.cpp_tools.ProfileCppPerformance",
+    "cpp_forge.tools.cpp_tools.ManageHotReload"
   ]
 }
