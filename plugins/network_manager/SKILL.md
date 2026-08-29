@@ -1,43 +1,76 @@
 # Network Manager Plugin
 
-## Описание
-Плагин для настройки сетевой инфраструктуры MMO RPG в Unreal Engine 5.7.
+Инструменты для настройки сетевой инфраструктуры MMO в Unreal Engine 5.7.
 
 ## Инструменты
 
-### setup_replication
-Настройка репликации для акторов и компонентов.
-- **destructive**: false
-- **Параметры**: actor_class, properties (список), replication_frequency
+### 1. setup_replication
+Настройка репликации для Actor Blueprint или C++ класса.
 
-### configure_rpc
-Настройка Remote Procedure Calls для функций Blueprint.
-- **destructive**: true
-- **Параметры**: blueprint_path, function_name, rpc_type (Server, Client, NetMulticast)
+**Параметры:**
+- `asset_path` (required): Путь к Blueprint или классу
+- `replicated_variables`: Список переменных для репликации
+- `replication_frequency`: High, Medium, Low
 
-### test_network_profiling
-Тестирование сетевой производительности с симуляцией задержки.
-- **destructive**: false
-- **Параметры**: simulated_latency_ms, packet_loss_percent, duration_seconds
+**destructive = True**
 
-### create_dedicated_server_config
-Создание конфигурации выделенного сервера.
-- **destructive**: false
-- **Параметры**: max_players, server_port, map_name, tick_rate
+### 2. configure_rpc
+Настройка Remote Procedure Calls (Server, Client, Multicast).
 
-### setup_session_system
+**Параметры:**
+- `asset_path` (required): Путь к Blueprint или классу
+- `rpc_type` (required): Server, Client, Multicast, NetMulticast
+- `function_name` (required): Имя функции
+- `is_reliable`: Надёжная доставка
+
+**destructive = True**
+
+### 3. test_network_profiling
+Тестирование сетевой производительности.
+
+**Параметры:**
+- `test_duration`: Длительность теста (сек)
+- `simulate_latency`: Имитация задержки (мс)
+- `simulate_packet_loss`: Потеря пакетов (0.0-1.0)
+
+### 4. create_dedicated_server_config
+Создание конфигурации для выделенного сервера.
+
+**Параметры:**
+- `server_name` (required): Имя сервера
+- `max_players`: Максимум игроков
+- `maps`: Список карт
+- `port`: Порт сервера
+
+### 5. setup_session_system
 Настройка системы игровых сессий.
-- **destructive**: false
-- **Параметры**: session_name, max_players, b_is_lan, b_is_presence
 
-## Использование
-```json
-{
-  "tool": "setup_replication",
-  "args": {
-    "actor_class": "/Game/Blueprints/Character_BP.Character_BP_C",
-    "properties": ["Health", "Mana", "Location"],
-    "replication_frequency": 10.0
-  }
-}
+**Параметры:**
+- `session_name`: Имя сессии
+- `max_players`: Максимум игроков
+- `use_lan`: LAN режим
+- `presence_enabled`: Статус игрока
+
+## Примеры
+
+```python
+await vera.call("setup_replication", {
+    "asset_path": "/Game/Blueprints/BP_Player",
+    "replicated_variables": ["Health", "Mana", "Position"],
+    "replication_frequency": "High"
+})
+
+await vera.call("configure_rpc", {
+    "asset_path": "/Game/Blueprints/BP_Player",
+    "rpc_type": "Server",
+    "function_name": "ServerAttack",
+    "is_reliable": True
+})
+
+await vera.call("create_dedicated_server_config", {
+    "server_name": "MyMMO_Server",
+    "max_players": 100,
+    "maps": ["/Game/Maps/MainWorld"],
+    "port": 7777
+})
 ```
