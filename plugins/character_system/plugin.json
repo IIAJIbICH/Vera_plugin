@@ -1,0 +1,9 @@
+{
+  "Version": "1.0.0",
+  "DisplayName": "Character System",
+  "Description": "Система персонажей для MMO RPG: Character BP, AttributeSet, GAS, инвентарь, экипировка, анимации, маунты",
+  "Category": "VERA Tools",
+  "CreatedBy": "VERA AI",
+  "DocumentationURL": "",
+  "SupportURL": ""
+}
