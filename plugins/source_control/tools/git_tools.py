@@ -1,5 +1,6 @@
 """
 Source Control - Git инструменты для управления версиями проекта
+Расширенный набор: status, diff, log, commit, branch, stash, reset, pull, push
 """
 
 import json
@@ -12,7 +13,20 @@ from ._git import (
     get_git_status,
     get_git_diff,
     get_git_log,
-    git_commit
+    git_commit,
+    git_branch_list,
+    git_branch_create,
+    git_branch_checkout,
+    git_branch_delete,
+    git_stash_save,
+    git_stash_list,
+    git_stash_pop,
+    git_stash_apply,
+    git_resolve_conflict,
+    git_reset_soft,
+    git_reset_hard,
+    git_pull,
+    git_push
 )
 
 
@@ -267,3 +281,370 @@ class GitCommitTool(Tool):
                 error=str(e),
                 message=f"Ошибка: {e}"
             )
+
+
+class GitBranchTool(Tool):
+    """Управление ветками Git"""
+    
+    name = "git_branch"
+    description = "Список, создание, переключение или удаление веток Git"
+    destructive = True
+    
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "action": {
+                "type": "string",
+                "enum": ["list", "create", "checkout", "delete"],
+                "description": "Действие с веткой"
+            },
+            "name": {
+                "type": "string",
+                "description": "Имя ветки (для create/checkout/delete)"
+            },
+            "force": {
+                "type": "boolean",
+                "description": "Принудительное удаление (для delete)",
+                "default": False
+            },
+            "repo_path": {
+                "type": "string",
+                "description": "Путь к репозиторию (по умолчанию ищется от корня проекта)"
+            }
+        },
+        "required": ["action"]
+    }
+    
+    def execute(self, args: dict, ctx: ToolContext) -> ToolResult:
+        action = args.get("action")
+        name = args.get("name")
+        force = args.get("force", False)
+        repo_path = args.get("repo_path")
+        
+        if not repo_path:
+            git_root = find_git_root(ctx.project_path)
+            if not git_root:
+                return ToolResult(
+                    success=False,
+                    error="Git репозиторий не найден",
+                    message="Текущая директория не является Git репозиторием"
+                )
+            repo_path = str(git_root)
+        
+        try:
+            if action == "list":
+                result = git_branch_list(repo_path)
+            elif action == "create":
+                if not name:
+                    return ToolResult(success=False, error="Не указано имя ветки")
+                result = git_branch_create(repo_path, name)
+            elif action == "checkout":
+                if not name:
+                    return ToolResult(success=False, error="Не указано имя ветки")
+                result = git_branch_checkout(repo_path, name)
+            elif action == "delete":
+                if not name:
+                    return ToolResult(success=False, error="Не указано имя ветки")
+                result = git_branch_delete(repo_path, name, force)
+            else:
+                return ToolResult(success=False, error=f"Неизвестное действие: {action}")
+            
+            if result.get("success"):
+                return ToolResult(success=True, data=result, message=result.get("message", "OK"))
+            else:
+                return ToolResult(success=False, error=result.get("error", "Неизвестная ошибка"))
+                
+        except Exception as e:
+            return ToolResult(success=False, error=str(e), message=f"Ошибка: {e}")
+
+
+class GitStashTool(Tool):
+    """Управление stash Git"""
+    
+    name = "git_stash"
+    description = "Сохранение, применение или извлечение изменений в stash"
+    destructive = True
+    
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "action": {
+                "type": "string",
+                "enum": ["save", "list", "pop", "apply"],
+                "description": "Действие со stash"
+            },
+            "message": {
+                "type": "string",
+                "description": "Сообщение для save"
+            },
+            "index": {
+                "type": "integer",
+                "description": "Индекс stash для pop/apply"
+            },
+            "repo_path": {
+                "type": "string",
+                "description": "Путь к репозиторию (по умолчанию ищется от корня проекта)"
+            }
+        },
+        "required": ["action"]
+    }
+    
+    def execute(self, args: dict, ctx: ToolContext) -> ToolResult:
+        action = args.get("action")
+        message = args.get("message")
+        index = args.get("index")
+        repo_path = args.get("repo_path")
+        
+        if not repo_path:
+            git_root = find_git_root(ctx.project_path)
+            if not git_root:
+                return ToolResult(
+                    success=False,
+                    error="Git репозиторий не найден",
+                    message="Текущая директория не является Git репозиторием"
+                )
+            repo_path = str(git_root)
+        
+        try:
+            if action == "save":
+                result = git_stash_save(repo_path, message)
+            elif action == "list":
+                result = git_stash_list(repo_path)
+            elif action == "pop":
+                result = git_stash_pop(repo_path, index)
+            elif action == "apply":
+                result = git_stash_apply(repo_path, index)
+            else:
+                return ToolResult(success=False, error=f"Неизвестное действие: {action}")
+            
+            if result.get("success"):
+                return ToolResult(success=True, data=result, message=result.get("message", "OK"))
+            else:
+                return ToolResult(success=False, error=result.get("error", "Неизвестная ошибка"))
+                
+        except Exception as e:
+            return ToolResult(success=False, error=str(e), message=f"Ошибка: {e}")
+
+
+class GitResolveConflictTool(Tool):
+    """Разрешение конфликта слияния"""
+    
+    name = "git_resolve_conflict"
+    description = "Отмечает файл как разрешённый после конфликта слияния"
+    destructive = True
+    
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "path": {
+                "type": "string",
+                "description": "Путь к файлу с разрешённым конфликтом"
+            },
+            "repo_path": {
+                "type": "string",
+                "description": "Путь к репозиторию (по умолчанию ищется от корня проекта)"
+            }
+        },
+        "required": ["path"]
+    }
+    
+    def execute(self, args: dict, ctx: ToolContext) -> ToolResult:
+        path = args.get("path")
+        repo_path = args.get("repo_path")
+        
+        if not path:
+            return ToolResult(success=False, error="Не указан путь к файлу")
+        
+        if not repo_path:
+            git_root = find_git_root(ctx.project_path)
+            if not git_root:
+                return ToolResult(
+                    success=False,
+                    error="Git репозиторий не найден",
+                    message="Текущая директория не является Git репозиторием"
+                )
+            repo_path = str(git_root)
+        
+        try:
+            result = git_resolve_conflict(repo_path, path)
+            
+            if result.get("success"):
+                return ToolResult(success=True, data=result, message=result.get("message", "OK"))
+            else:
+                return ToolResult(success=False, error=result.get("error", "Неизвестная ошибка"))
+                
+        except Exception as e:
+            return ToolResult(success=False, error=str(e), message=f"Ошибка: {e}")
+
+
+class GitResetTool(Tool):
+    """Сброс Git до указанного коммита"""
+    
+    name = "git_reset"
+    description = "Выполняет мягкий или жёсткий сброс до указанного коммита"
+    destructive = True
+    
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "target": {
+                "type": "string",
+                "description": "Целевой коммит (hash, tag, branch)"
+            },
+            "mode": {
+                "type": "string",
+                "enum": ["soft", "hard"],
+                "description": "Режим сброса: soft (сохраняет изменения) или hard (теряет)",
+                "default": "soft"
+            },
+            "repo_path": {
+                "type": "string",
+                "description": "Путь к репозиторию (по умолчанию ищется от корня проекта)"
+            }
+        },
+        "required": ["target"]
+    }
+    
+    def execute(self, args: dict, ctx: ToolContext) -> ToolResult:
+        target = args.get("target")
+        mode = args.get("mode", "soft")
+        repo_path = args.get("repo_path")
+        
+        if not target:
+            return ToolResult(success=False, error="Не указана целевая точка сброса")
+        
+        if not repo_path:
+            git_root = find_git_root(ctx.project_path)
+            if not git_root:
+                return ToolResult(
+                    success=False,
+                    error="Git репозиторий не найден",
+                    message="Текущая директория не является Git репозиторием"
+                )
+            repo_path = str(git_root)
+        
+        try:
+            if mode == "soft":
+                result = git_reset_soft(repo_path, target)
+            else:
+                result = git_reset_hard(repo_path, target)
+            
+            if result.get("success"):
+                return ToolResult(success=True, data=result, message=result.get("message", "OK"))
+            else:
+                return ToolResult(success=False, error=result.get("error", "Неизвестная ошибка"))
+                
+        except Exception as e:
+            return ToolResult(success=False, error=str(e), message=f"Ошибка: {e}")
+
+
+class GitPullTool(Tool):
+    """Pull изменений из удалённого репозитория"""
+    
+    name = "git_pull"
+    description = "Получает изменения из удалённого репозитория"
+    destructive = True
+    
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "remote": {
+                "type": "string",
+                "description": "Имя удалённого репозитория",
+                "default": "origin"
+            },
+            "branch": {
+                "type": "string",
+                "description": "Имя ветки (опционально)"
+            },
+            "repo_path": {
+                "type": "string",
+                "description": "Путь к репозиторию (по умолчанию ищется от корня проекта)"
+            }
+        }
+    }
+    
+    def execute(self, args: dict, ctx: ToolContext) -> ToolResult:
+        remote = args.get("remote", "origin")
+        branch = args.get("branch")
+        repo_path = args.get("repo_path")
+        
+        if not repo_path:
+            git_root = find_git_root(ctx.project_path)
+            if not git_root:
+                return ToolResult(
+                    success=False,
+                    error="Git репозиторий не найден",
+                    message="Текущая директория не является Git репозиторием"
+                )
+            repo_path = str(git_root)
+        
+        try:
+            result = git_pull(repo_path, remote, branch)
+            
+            if result.get("success"):
+                return ToolResult(success=True, data=result, message="Изменения получены")
+            else:
+                return ToolResult(success=False, error=result.get("error", "Неизвестная ошибка"))
+                
+        except Exception as e:
+            return ToolResult(success=False, error=str(e), message=f"Ошибка: {e}")
+
+
+class GitPushTool(Tool):
+    """Push изменений в удалённый репозиторий"""
+    
+    name = "git_push"
+    description = "Отправляет изменения в удалённый репозиторий"
+    destructive = True
+    
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "remote": {
+                "type": "string",
+                "description": "Имя удалённого репозитория",
+                "default": "origin"
+            },
+            "branch": {
+                "type": "string",
+                "description": "Имя ветки (опционально)"
+            },
+            "force": {
+                "type": "boolean",
+                "description": "Принудительная отправка",
+                "default": False
+            },
+            "repo_path": {
+                "type": "string",
+                "description": "Путь к репозиторию (по умолчанию ищется от корня проекта)"
+            }
+        }
+    }
+    
+    def execute(self, args: dict, ctx: ToolContext) -> ToolResult:
+        remote = args.get("remote", "origin")
+        branch = args.get("branch")
+        force = args.get("force", False)
+        repo_path = args.get("repo_path")
+        
+        if not repo_path:
+            git_root = find_git_root(ctx.project_path)
+            if not git_root:
+                return ToolResult(
+                    success=False,
+                    error="Git репозиторий не найден",
+                    message="Текущая директория не является Git репозиторием"
+                )
+            repo_path = str(git_root)
+        
+        try:
+            result = git_push(repo_path, remote, branch, force)
+            
+            if result.get("success"):
+                return ToolResult(success=True, data=result, message="Изменения отправлены")
+            else:
+                return ToolResult(success=False, error=result.get("error", "Неизвестная ошибка"))
+                
+        except Exception as e:
+            return ToolResult(success=False, error=str(e), message=f"Ошибка: {e}")
