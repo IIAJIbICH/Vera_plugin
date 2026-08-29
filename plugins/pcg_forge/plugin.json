@@ -1,0 +1,15 @@
+{
+    "FileVersion": 1,
+    "Version": 1,
+    "VersionName": "1.0",
+    "FriendlyName": "PCG Forge",
+    "Description": "Создание и настройка PCG графов для процедурной генерации",
+    "Category": "Level Design",
+    "CreatedBy": "VERA AI Assistant",
+    "EngineVersion": "5.7",
+    "Modules": [{"Name": "PCGForge", "Type": "Runtime", "LoadingPhase": "Default"}],
+    "Plugins": [],
+    "CanContainContent": false,
+    "Installed": true,
+    "EnabledByDefault": true
+}
