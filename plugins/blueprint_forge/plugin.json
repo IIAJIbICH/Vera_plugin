@@ -1,0 +1,21 @@
+{
+    "FileVersion": 1,
+    "Version": 1,
+    "VersionName": "1.0",
+    "FriendlyName": "Blueprint Forge",
+    "Description": "Создание Actor Blueprint с компонентами через Python API Unreal",
+    "Category": "Scripting",
+    "CreatedBy": "VERA AI Assistant",
+    "EngineVersion": "5.7",
+    "Modules": [
+        {
+            "Name": "BlueprintForge",
+            "Type": "Runtime",
+            "LoadingPhase": "Default"
+        }
+    ],
+    "Plugins": [],
+    "CanContainContent": false,
+    "Installed": true,
+    "EnabledByDefault": true
+}

@@ -1,0 +1,21 @@
+{
+    "FileVersion": 1,
+    "Version": 1,
+    "VersionName": "1.0",
+    "FriendlyName": "Mobile Performance Doctor",
+    "Description": "Анализ производительности и совместимости с мобильными устройствами",
+    "Category": "Performance",
+    "CreatedBy": "VERA AI Assistant",
+    "EngineVersion": "5.7",
+    "Modules": [
+        {
+            "Name": "MobileDoctor",
+            "Type": "Runtime",
+            "LoadingPhase": "Default"
+        }
+    ],
+    "Plugins": [],
+    "CanContainContent": false,
+    "Installed": true,
+    "EnabledByDefault": true
+}

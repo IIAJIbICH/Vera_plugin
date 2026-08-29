@@ -1,0 +1,21 @@
+{
+    "FileVersion": 1,
+    "Version": 1,
+    "VersionName": "1.0",
+    "FriendlyName": "Scene Vibe",
+    "Description": "Применение настроения сцены через освещение и пост-обработку",
+    "Category": "Level Design",
+    "CreatedBy": "VERA AI Assistant",
+    "EngineVersion": "5.7",
+    "Modules": [
+        {
+            "Name": "SceneVibe",
+            "Type": "Runtime",
+            "LoadingPhase": "Default"
+        }
+    ],
+    "Plugins": [],
+    "CanContainContent": false,
+    "Installed": true,
+    "EnabledByDefault": true
+}

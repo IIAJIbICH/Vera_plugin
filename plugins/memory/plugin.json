@@ -1,0 +1,21 @@
+{
+    "FileVersion": 1,
+    "Version": 1,
+    "VersionName": "1.0",
+    "FriendlyName": "Memory",
+    "Description": "Сохранение и поиск воспоминаний (фактов) в JSONL-хранилище",
+    "Category": "Utilities",
+    "CreatedBy": "VERA AI Assistant",
+    "EngineVersion": "5.7",
+    "Modules": [
+        {
+            "Name": "Memory",
+            "Type": "Runtime",
+            "LoadingPhase": "Default"
+        }
+    ],
+    "Plugins": [],
+    "CanContainContent": false,
+    "Installed": true,
+    "EnabledByDefault": true
+}
