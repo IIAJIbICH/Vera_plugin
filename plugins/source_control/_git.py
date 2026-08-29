@@ -191,3 +191,229 @@ def git_commit(repo_path: str, message: str, paths: List[str]) -> Dict[str, Any]
         "message": message,
         "files_count": len(paths)
     }
+
+
+def git_branch_list(repo_path: str) -> Dict[str, Any]:
+    """Получает список веток"""
+    result = run_git_command(["branch", "-a"], cwd=repo_path)
+    
+    if not result["success"]:
+        return result
+    
+    branches = []
+    current = ""
+    
+    for line in result["stdout"].split("\n"):
+        if not line:
+            continue
+        line = line.strip()
+        if line.startswith("*"):
+            current = line[2:].strip()
+            branches.append(current)
+        else:
+            branches.append(line)
+    
+    return {
+        "success": True,
+        "branches": branches,
+        "current": current
+    }
+
+
+def git_branch_create(repo_path: str, name: str) -> Dict[str, Any]:
+    """Создаёт новую ветку"""
+    result = run_git_command(["checkout", "-b", name], cwd=repo_path)
+    
+    if not result["success"]:
+        return result
+    
+    return {
+        "success": True,
+        "branch": name,
+        "message": f"Ветка {name} создана и переключена"
+    }
+
+
+def git_branch_checkout(repo_path: str, name: str) -> Dict[str, Any]:
+    """Переключается на существующую ветку"""
+    result = run_git_command(["checkout", name], cwd=repo_path)
+    
+    if not result["success"]:
+        return result
+    
+    return {
+        "success": True,
+        "branch": name,
+        "message": f"Переключено на ветку {name}"
+    }
+
+
+def git_branch_delete(repo_path: str, name: str, force: bool = False) -> Dict[str, Any]:
+    """Удаляет ветку"""
+    flag = "-D" if force else "-d"
+    result = run_git_command(["branch", flag, name], cwd=repo_path)
+    
+    if not result["success"]:
+        return {
+            "success": False,
+            "error": result.get("stderr", "Ошибка удаления ветки")
+        }
+    
+    return {
+        "success": True,
+        "branch": name,
+        "message": f"Ветка {name} удалена"
+    }
+
+
+def git_stash_save(repo_path: str, message: Optional[str] = None) -> Dict[str, Any]:
+    """Сохраняет изменения в stash"""
+    args = ["stash", "save"]
+    if message:
+        args.append(message)
+    
+    result = run_git_command(args, cwd=repo_path)
+    
+    if not result["success"]:
+        return result
+    
+    return {
+        "success": True,
+        "message": message or "Stash saved",
+        "output": result["stdout"]
+    }
+
+
+def git_stash_list(repo_path: str) -> Dict[str, Any]:
+    """Получает список stash"""
+    result = run_git_command(["stash", "list"], cwd=repo_path)
+    
+    if not result["success"]:
+        return result
+    
+    stashes = []
+    for line in result["stdout"].split("\n"):
+        if line:
+            stashes.append(line)
+    
+    return {
+        "success": True,
+        "stashes": stashes,
+        "count": len(stashes)
+    }
+
+
+def git_stash_pop(repo_path: str, index: Optional[int] = None) -> Dict[str, Any]:
+    """Извлекает stash с удалением"""
+    args = ["stash", "pop"]
+    if index is not None:
+        args.append(f"stash@{{{index}}}")
+    
+    result = run_git_command(args, cwd=repo_path)
+    
+    if not result["success"]:
+        return result
+    
+    return {
+        "success": True,
+        "message": "Stash popped",
+        "output": result["stdout"]
+    }
+
+
+def git_stash_apply(repo_path: str, index: Optional[int] = None) -> Dict[str, Any]:
+    """Применяет stash без удаления"""
+    args = ["stash", "apply"]
+    if index is not None:
+        args.append(f"stash@{{{index}}}")
+    
+    result = run_git_command(args, cwd=repo_path)
+    
+    if not result["success"]:
+        return result
+    
+    return {
+        "success": True,
+        "message": "Stash applied",
+        "output": result["stdout"]
+    }
+
+
+def git_resolve_conflict(repo_path: str, path: str) -> Dict[str, Any]:
+    """Отмечает файл как разрешённый после конфликта"""
+    result = run_git_command(["add", path], cwd=repo_path)
+    
+    if not result["success"]:
+        return result
+    
+    return {
+        "success": True,
+        "path": path,
+        "message": f"Конфликт в файле {path} разрешён"
+    }
+
+
+def git_reset_soft(repo_path: str, target: str) -> Dict[str, Any]:
+    """Мягкий сброс до указанного коммита (сохраняет изменения)"""
+    result = run_git_command(["reset", "--soft", target], cwd=repo_path)
+    
+    if not result["success"]:
+        return result
+    
+    return {
+        "success": True,
+        "target": target,
+        "message": f"Выполнен мягкий сброс до {target}"
+    }
+
+
+def git_reset_hard(repo_path: str, target: str) -> Dict[str, Any]:
+    """Жёсткий сброс до указанного коммита (теряет изменения)"""
+    result = run_git_command(["reset", "--hard", target], cwd=repo_path)
+    
+    if not result["success"]:
+        return result
+    
+    return {
+        "success": True,
+        "target": target,
+        "message": f"Выполнен жёсткий сброс до {target}"
+    }
+
+
+def git_pull(repo_path: str, remote: str = "origin", branch: Optional[str] = None) -> Dict[str, Any]:
+    """Pull изменения из удалённого репозитория"""
+    args = ["pull", remote]
+    if branch:
+        args.append(branch)
+    
+    result = run_git_command(args, cwd=repo_path)
+    
+    if not result["success"]:
+        return result
+    
+    return {
+        "success": True,
+        "output": result["stdout"],
+        "message": "Изменения получены из удалённого репозитория"
+    }
+
+
+def git_push(repo_path: str, remote: str = "origin", branch: Optional[str] = None, force: bool = False) -> Dict[str, Any]:
+    """Push изменений в удалённый репозиторий"""
+    args = ["push", remote]
+    if force:
+        args.append("--force")
+    if branch:
+        args.append(branch)
+    
+    result = run_git_command(args, cwd=repo_path)
+    
+    if not result["success"]:
+        return result
+    
+    return {
+        "success": True,
+        "output": result["stdout"],
+        "message": "Изменения отправлены в удалённый репозиторий"
+    }
