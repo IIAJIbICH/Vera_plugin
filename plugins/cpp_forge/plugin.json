@@ -1,0 +1,9 @@
+{
+  "name": "CppForge",
+  "version": "1.0.0",
+  "description": "C++ код-генерация и управление проектом UE5.7",
+  "author": "VERA Team",
+  "tools": [
+    "cpp_forge.tools.create_cpp_module"
+  ]
+}
